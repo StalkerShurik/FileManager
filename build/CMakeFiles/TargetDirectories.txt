@@ -1,0 +1,3 @@
+/home/alexander_gaponov/CLionProjects/FileManager/build/CMakeFiles/FileManager.dir
+/home/alexander_gaponov/CLionProjects/FileManager/build/CMakeFiles/edit_cache.dir
+/home/alexander_gaponov/CLionProjects/FileManager/build/CMakeFiles/rebuild_cache.dir
