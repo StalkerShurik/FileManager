@@ -95,10 +95,11 @@ int is_hiden_directory(char *buf) {
 
 void print_name_and_size(File* cur_file) {
     printw("%s", cur_file->name);
-    for (size_t i = 0; i < 30 - strlen(cur_file->name); ++i) {
+    for (size_t i = 0; i < 50 - strlen(cur_file->name); ++i) {
         printw(" ");
     }
     printw("%zu bytes\n", cur_file->size);
+    refresh();
 }
 
 void print_directories() {
@@ -107,7 +108,6 @@ void print_directories() {
         char error[] = "Error while opening directory\n";
         handle_error(error);
     }
-
     size_t prev_size = strlen(cwd);
     if (cwd[prev_size - 1] != '/') {
         cwd[prev_size++] = '/';
@@ -145,12 +145,13 @@ void print_directories() {
         files[n].size = information.st_size;
         n++;
     }
-    n_files = n;
 
+    n_files = n;
     if (current_file == 0) {
         start_row = 0;
         end_row = min(n, max_rows);
     }
+
 
     qsort(files, n, sizeof(File), file_comp);
 
@@ -171,13 +172,10 @@ void print_directories() {
     char *tmp = files[current_file].name;
     closedir(current_directory);
     current_directory = opendir(cwd);
-
-    printw("%s\n", cwd);
-    refresh();
-
     while ((current = readdir(current_directory)) != NULL) {
         if (current->d_name == tmp) {
             pointed_directory = current;
+            break;
         }
     }
 
@@ -215,12 +213,12 @@ void update() {
     n_files = 0;
     current_file = 0;
     print_directories();
-    refresh();
+//    refresh();
 }
 
 void process_enter(struct dirent *current) {
     if (current->d_type == DT_DIR) {
-        refresh();
+//        refresh();
         size_t prev_size = strlen(cwd);
         if (cwd[prev_size - 1] != '/') {
             cwd[prev_size++] = '/';
@@ -236,7 +234,7 @@ void process_enter(struct dirent *current) {
         }
         update();
     }
-    refresh();
+//    refresh();
 }
 
 void delete_file() {
@@ -337,7 +335,6 @@ void paste_file() {
     fclose(paste_file_ptr);
 
     if (cut) {
-        printw("%s\n", path_to_copied_file);
         if (remove(path_to_copied_file)) {
             char *buf = "can't remove file\n";
             perror(buf);
