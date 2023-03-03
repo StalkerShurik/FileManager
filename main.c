@@ -20,8 +20,8 @@ int main() {
 
         print_header();
         print_directories();
+//        printw("%s\n", pointed_directory->d_name);
 
-        refresh();
 
         int call = getch();
         switch (call) {

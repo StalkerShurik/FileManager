@@ -37,7 +37,7 @@ FILE* copy_file_ptr = NULL;
 FILE* paste_file_ptr;
 
 char* copied_file_name;
-char *path_to_copied_file;
+char path_to_copied_file[PATH_MAX];
 int cut = 0;
 
 void handle_error(char buff[]) {
@@ -171,11 +171,16 @@ void print_directories() {
     char *tmp = files[current_file].name;
     closedir(current_directory);
     current_directory = opendir(cwd);
+
+    printw("%s\n", cwd);
+    refresh();
+
     while ((current = readdir(current_directory)) != NULL) {
         if (current->d_name == tmp) {
             pointed_directory = current;
         }
     }
+
     closedir(current_directory);
 }
 
@@ -210,6 +215,7 @@ void update() {
     n_files = 0;
     current_file = 0;
     print_directories();
+    refresh();
 }
 
 void process_enter(struct dirent *current) {
@@ -230,6 +236,7 @@ void process_enter(struct dirent *current) {
         }
         update();
     }
+    refresh();
 }
 
 void delete_file() {
@@ -272,7 +279,7 @@ void copy_file() {
     }
     strcat(cwd, files[current_file].name);
 
-    path_to_copied_file = cwd;
+    strcpy(path_to_copied_file, cwd);
 
     copy_file_ptr = fopen(cwd, "r");
 
@@ -329,7 +336,6 @@ void paste_file() {
     copy_file_ptr = NULL;
     fclose(paste_file_ptr);
 
-    printw("LOOOOOOOOh%s\n", path_to_copied_file);
     if (cut) {
         printw("%s\n", path_to_copied_file);
         if (remove(path_to_copied_file)) {
@@ -339,11 +345,10 @@ void paste_file() {
         cut = 0;
     }
 
-    //update();
+    update();
 }
 
 void cut_file() {
-    //change color
     copy_file();
     cut = 1;
 }
