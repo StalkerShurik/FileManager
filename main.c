@@ -74,6 +74,9 @@ int main() {
             case (int)'V':
                 paste_file();
                 break;
+            case (int)'X':
+                cut_file();
+                break;
             default:
                 break;
         }

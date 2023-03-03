@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 enum { MAX_DIR_NUM = 1024 };
 
@@ -32,8 +33,12 @@ size_t end_row;
 
 size_t view_mod = 0;
 
-char *copied_file;
-char *copied_file_name;
+FILE* copy_file_ptr = NULL;
+FILE* paste_file_ptr;
+
+char* copied_file_name;
+char *path_to_copied_file;
+int cut = 0;
 
 void handle_error(char buff[]) {
     endwin();
@@ -253,9 +258,92 @@ void change_view_mod() {
 }
 
 void copy_file() {
+    if (copy_file_ptr != NULL) {
+        fclose(copy_file_ptr);
+        copy_file_ptr = NULL;
+    }
 
+    copied_file_name = files[current_file].name;
+
+    size_t prev_size = strlen(cwd);
+    if (cwd[prev_size - 1] != '/') {
+        cwd[prev_size++] = '/';
+        cwd[prev_size] = '\0';
+    }
+    strcat(cwd, files[current_file].name);
+
+    path_to_copied_file = cwd;
+
+    copy_file_ptr = fopen(cwd, "r");
+
+    if (copy_file_ptr == NULL) {
+        char *buf = "open file error\n";
+        perror(buf);
+    }
+    cwd[prev_size] = '\0';
+    cut = 0;
+}
+
+void add_(char *buf) {
+    size_t prev_size = strlen(buf);
+    buf[prev_size] = '_';
+    buf[prev_size + 1] = '\0';
 }
 
 void paste_file() {
+    if (copy_file_ptr == NULL) {
+        return;
+    }
+    size_t prev_size = strlen(cwd);
+    if (cwd[prev_size - 1] != '/') {
+        cwd[prev_size++] = '/';
+        cwd[prev_size] = '\0';
+    }
 
+    strcat(cwd, copied_file_name);
+    while (1) {
+        FILE *cur_file;
+        if ((cur_file = fopen(cwd, "r")))
+        {
+            fclose(cur_file);
+            add_(cwd);
+        } else {
+            break;
+        }
+    }
+
+    paste_file_ptr = fopen(cwd, "w");
+    if (paste_file_ptr == NULL) {
+        char *buf = "open file error\n";
+        perror(buf);
+    }
+    cwd[prev_size] = '\0';
+
+    char c;
+    c = (char)fgetc(copy_file_ptr);
+    while (c != EOF) {
+        fputc(c, paste_file_ptr);
+        c = (char)fgetc(copy_file_ptr);
+    }
+    fclose(copy_file_ptr);
+    copy_file_ptr = NULL;
+    fclose(paste_file_ptr);
+
+    printw("LOOOOOOOOh%s\n", path_to_copied_file);
+    if (cut) {
+        printw("%s\n", path_to_copied_file);
+        if (remove(path_to_copied_file)) {
+            char *buf = "can't remove file\n";
+            perror(buf);
+        }
+        cut = 0;
+    }
+
+    //update();
+}
+
+void cut_file() {
+    //change color
+    copy_file();
+    cut = 1;
 }
